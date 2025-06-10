@@ -29,6 +29,7 @@ public class Main {
             System.out.println("2) Challenge 2: Vehicle Registry (Lookup by Brand)");
             System.out.println("3) Challenge 3: Citizen's Vehicle Fleet");
             System.out.println("4) Challenge 4: Average Mission Payout");
+            System.out.println("5) Challenge 5: Inactive Agents (No Missions)");
             System.out.println("0) Exit");
             System.out.print("\nChoose an option: ");
 
@@ -40,6 +41,7 @@ public class Main {
                 case 2 -> runVehicleRegistry();
                 case 3 -> runCitizenFleetReport();
                 case 4 -> runAveragePayout();
+                case 5 -> runInactiveAgentReport();
                 case 0 -> {
                     System.out.println("Exiting...");
                     return;
@@ -168,6 +170,33 @@ public class Main {
                 System.out.println("-------------------------------");
             } else {
                 System.out.println("No mission data available.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Challenge 5: Inactive Agents (No Missions)
+    public static void runInactiveAgentReport() {
+        String query =
+                "SELECT c.Name FROM GTA.Citizens c " + "LEFT JOIN GTA.Missions m ON c.CitizenID = m.MissionID " + "WHERE m.MissionID IS NULL";
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()
+        ) {
+            System.out.println("\n--- Agents With No Recorded Missions ---");
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+                System.out.printf("Name: %s\n", rs.getString("Name"));
+            }
+
+            if (!found) {
+                System.out.println("Every citizen has completed at least one mission.");
             }
 
         } catch (SQLException e) {
