@@ -30,6 +30,7 @@ public class Main {
             System.out.println("3) Challenge 3: Citizen's Vehicle Fleet");
             System.out.println("4) Challenge 4: Average Mission Payout");
             System.out.println("5) Challenge 5: Inactive Agents (No Missions)");
+            System.out.println("6) Challenge 6: Top 3 Criminals (Stolen Vehicle Missions)");
             System.out.println("0) Exit");
             System.out.print("\nChoose an option: ");
 
@@ -42,6 +43,7 @@ public class Main {
                 case 3 -> runCitizenFleetReport();
                 case 4 -> runAveragePayout();
                 case 5 -> runInactiveAgentReport();
+                case 6 -> runHighestEarningCriminals();
                 case 0 -> {
                     System.out.println("Exiting...");
                     return;
@@ -197,6 +199,41 @@ public class Main {
 
             if (!found) {
                 System.out.println("Every citizen has completed at least one mission.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Challenge 6: Top 3 Criminals (Stolen Vehicle Missions)
+    public static void runHighestEarningCriminals() {
+        String query =
+                "SELECT TOP 3 c.Name, SUM(m.Reward) AS TotalEarnings " +
+                        "FROM GTA.Citizens c " +
+                        "JOIN GTA.Missions m ON c.CitizenID = m.MissionID " +
+                        "JOIN GTA.Vehicles v ON c.CitizenID = v.VehicleID " +
+                        "WHERE v.IsStolen = 1 " +
+                        "GROUP BY c.Name " +
+                        "ORDER BY TotalEarnings DESC";
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()
+        ) {
+            System.out.println("\n--- Top 3 Highest Earning Criminals (with stolen cars) ---");
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+                System.out.printf("%-20s Total Earnings: $%.2f\n",
+                        rs.getString("Name"),
+                        rs.getDouble("TotalEarnings"));
+            }
+
+            if (!found) {
+                System.out.println("No qualifying criminals found.");
             }
 
         } catch (SQLException e) {
