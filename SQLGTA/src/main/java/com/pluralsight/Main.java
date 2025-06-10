@@ -24,12 +24,13 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            System.out.println("Bay City SQL Operations");
+            System.out.println("\n----------Bay City SQL Operations----------");
             System.out.println("1) Challenge 1: The Informant (Lookup by Alias)");
             System.out.println("2) Challenge 2: Vehicle Registry (Lookup by Brand)");
             System.out.println("3) Challenge 3: Citizen's Vehicle Fleet");
+            System.out.println("4) Challenge 4: Average Mission Payout");
             System.out.println("0) Exit");
-            System.out.print("Choose an option: ");
+            System.out.print("\nChoose an option: ");
 
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline character
@@ -38,6 +39,7 @@ public class Main {
                 case 1 -> runInformantCheck();
                 case 2 -> runVehicleRegistry();
                 case 3 -> runCitizenFleetReport();
+                case 4 -> runAveragePayout();
                 case 0 -> {
                     System.out.println("Exiting...");
                     return;
@@ -47,6 +49,7 @@ public class Main {
         }
     }
 
+    // Challenge 1: The Informant (Lookup by Alias)
     public static void runInformantCheck() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the alias of the citizen to look up: ");
@@ -77,6 +80,7 @@ public class Main {
         }
     }
 
+    // Challenge 2: Vehicle Registry (Lookup by Brand)
     public static void runVehicleRegistry() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter vehicle brand to search for: ");
@@ -99,7 +103,7 @@ public class Main {
                         rs.getString("Name"),
                         rs.getString("Type"),
                         rs.getString("Brand"));
-                System.out.println("\n");
+                System.out.println("-------------------------------");
             }
 
             if (!found) {
@@ -111,6 +115,7 @@ public class Main {
         }
     }
 
+    // Challenge 3: Citizen's Vehicle Fleet
     public static void runCitizenFleetReport() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter citizen's name to see their vehicle fleet: ");
@@ -134,11 +139,35 @@ public class Main {
                         rs.getString("Type"),
                         rs.getString("Brand"),
                         rs.getBoolean("IsStolen"));
-                System.out.println("\n");
+                System.out.println("-------------------------------");
             }
 
             if (!found) {
                 System.out.println("No vehicles found for this citizen.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Challenge 4: Average Mission Payout
+    public static void runAveragePayout() {
+        String query = "SELECT AVG(Reward) AS AveragePayout FROM GTA.Missions";
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()
+        ) {
+            System.out.println("\n--- Mission Payout Analysis ---");
+
+            if (rs.next()) {
+                double avg = rs.getDouble("AveragePayout");
+                System.out.printf("The average mission payout is: $%.2f\n", avg);
+                System.out.println("-------------------------------");
+            } else {
+                System.out.println("No mission data available.");
             }
 
         } catch (SQLException e) {
