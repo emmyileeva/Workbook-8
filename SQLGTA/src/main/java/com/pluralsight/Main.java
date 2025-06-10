@@ -27,6 +27,7 @@ public class Main {
             System.out.println("Bay City SQL Operations");
             System.out.println("1) Challenge 1: The Informant (Lookup by Alias)");
             System.out.println("2) Challenge 2: Vehicle Registry (Lookup by Brand)");
+            System.out.println("3) Challenge 3: Citizen's Vehicle Fleet");
             System.out.println("0) Exit");
             System.out.print("Choose an option: ");
 
@@ -36,6 +37,7 @@ public class Main {
             switch (choice) {
                 case 1 -> runInformantCheck();
                 case 2 -> runVehicleRegistry();
+                case 3 -> runCitizenFleetReport();
                 case 0 -> {
                     System.out.println("Exiting...");
                     return;
@@ -102,6 +104,41 @@ public class Main {
 
             if (!found) {
                 System.out.println("No vehicles found for that brand.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void runCitizenFleetReport() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter citizen's name to see their vehicle fleet: ");
+        String name = scanner.nextLine();
+
+        String query = "SELECT v.Type, v.Brand, v.IsStolen " + "FROM GTA.Vehicles v " + "JOIN GTA.Citizens c ON v.OwnerID = c.CitizenID " + "WHERE c.Name = ?";
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement stmt = conn.prepareStatement(query)
+        ) {
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+
+            System.out.printf("\n--- Vehicle Fleet for %s ---\n", name);
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+                System.out.printf("Type: %-15s Brand: %-15s Stolen: %b\n",
+                        rs.getString("Type"),
+                        rs.getString("Brand"),
+                        rs.getBoolean("IsStolen"));
+                System.out.println("\n");
+            }
+
+            if (!found) {
+                System.out.println("No vehicles found for this citizen.");
             }
 
         } catch (SQLException e) {
