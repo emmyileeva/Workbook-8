@@ -26,6 +26,7 @@ public class Main {
         while (true) {
             System.out.println("Bay City SQL Operations");
             System.out.println("1) Challenge 1: The Informant (Lookup by Alias)");
+            System.out.println("2) Challenge 2: Vehicle Registry (Lookup by Brand)");
             System.out.println("0) Exit");
             System.out.print("Choose an option: ");
 
@@ -34,6 +35,7 @@ public class Main {
 
             switch (choice) {
                 case 1 -> runInformantCheck();
+                case 2 -> runVehicleRegistry();
                 case 0 -> {
                     System.out.println("Exiting...");
                     return;
@@ -72,4 +74,39 @@ public class Main {
             System.err.println("Error: " + e.getMessage());
         }
     }
+
+    public static void runVehicleRegistry() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter vehicle brand to search for: ");
+        String brand = scanner.nextLine();
+
+        String query = "SELECT c.Name, v.Type, v.Brand FROM GTA.Vehicles v " + "JOIN GTA.Citizens c ON v.OwnerID = c.CitizenID WHERE v.Brand = ?";
+
+        try (
+                Connection conn = DriverManager.getConnection(DB_URL);
+                PreparedStatement stmt = conn.prepareStatement(query)
+        ) {
+            stmt.setString(1, brand);
+            ResultSet rs = stmt.executeQuery();
+
+            System.out.printf("\n--- Vehicles of Brand: %s ---\n", brand);
+            boolean found = false;
+            while (rs.next()) {
+                found = true;
+                System.out.printf("Owner: %-20s Type: %-15s Brand: %-15s\n",
+                        rs.getString("Name"),
+                        rs.getString("Type"),
+                        rs.getString("Brand"));
+                System.out.println("\n");
+            }
+
+            if (!found) {
+                System.out.println("No vehicles found for that brand.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
 }
